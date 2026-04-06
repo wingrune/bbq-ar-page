@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BBQ ICRA WebAR</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    :root {
+      --bg: #120b08;
+      --panel: rgba(31, 18, 11, 0.8);
+      --panel-solid: #1b120d;
+      --text: #fff7eb;
+      --muted: #dfc4a2;
+      --accent: #ff8a3d;
+      --accent-strong: #ff5a1f;
+      --line: rgba(255, 255, 255, 0.1);
+      --shadow: 0 26px 60px rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(255, 138, 61, 0.24), transparent 30%),
+        linear-gradient(180deg, #26130d 0%, #120b08 46%, #090605 100%);
+    }
+
+    body.ar-active {
+      overflow: hidden;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      font-size: 0.8rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.4rem, 4.6vw, 5.1rem);
+      line-height: 0.92;
+      max-width: 12ch;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 60ch;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 1rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 22px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.25rem;
+    }
+
+    .panel p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .status {
+      margin: 0;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      min-height: 48px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button,
+    a.button-link {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 180ms ease, opacity 180ms ease, background 180ms ease;
+    }
+
+    button:hover,
+    a.button-link:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled,
+    a.button-link.disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+      transform: none;
+      pointer-events: none;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+      color: white;
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .target-card {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-frame {
+      aspect-ratio: 4 / 3;
+      border-radius: 20px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255, 138, 61, 0.18), rgba(255, 255, 255, 0.04)),
+        var(--panel-solid);
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+    }
+
+    .preview-frame img {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #111;
+    }
+
+    .preview-frame.ready img {
+      display: block;
+    }
+
+    .preview-copy {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .steps li + li {
+      margin-top: 8px;
+    }
+
+    .ar-stage {
+      position: relative;
+      min-height: 520px;
+      overflow: hidden;
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)),
+        #090909;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+
+    .stage-placeholder,
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      text-align: center;
+    }
+
+    .stage-placeholder {
+      background:
+        radial-gradient(circle at center, rgba(255, 138, 61, 0.12), transparent 30%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.25));
+    }
+
+    .placeholder-card,
+    .scan-card {
+      width: min(420px, 100%);
+      padding: 22px;
+      border-radius: 22px;
+      background: rgba(13, 10, 9, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--line);
+    }
+
+    .scan-overlay {
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .scan-overlay.visible {
+      opacity: 1;
+    }
+
+    .finder {
+      width: min(66vw, 320px);
+      aspect-ratio: 1;
+      margin: 0 auto 18px;
+      border: 2px solid rgba(255, 255, 255, 0.92);
+      border-radius: 24px;
+      position: relative;
+      box-shadow: 0 0 0 200vmax rgba(0, 0, 0, 0.18);
+    }
+
+    .finder::before,
+    .finder::after {
+      content: "";
+      position: absolute;
+      inset: 16px;
+      border-top: 2px solid rgba(255, 138, 61, 0.95);
+      border-bottom: 2px solid rgba(255, 138, 61, 0.95);
+      border-radius: 16px;
+    }
+
+    #scene-host {
+      position: absolute;
+      inset: 0;
+    }
+
+    #scene-host a-scene {
+      position: absolute !important;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .support {
+      font-size: 0.92rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 920px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .ar-stage {
+        min-height: 62vh;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        padding: 16px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="shell">
+      <section class="hero">
+        <div class="eyebrow">Image-Tracked WebAR</div>
+        <h1>BBQ-ICRA in AR</h1>
+        <p class="lead">
+          This page turns the first frame of <code>BBQ-ICRA.mp4</code> into the printed tracking image. When the camera
+          sees that printed frame, the video appears on top of it in the browser.
+        </p>
+      </section>
+
+      <section class="layout">
+        <div class="panel">
+          <h2>Printed Target</h2>
+          <p id="status" class="status">Preparing the first frame preview.</p>
+
+          <div class="target-card">
+            <div class="preview-frame" id="previewFrame">
+              <img id="targetPreview" alt="Generated image target from the first video frame">
+            </div>
+
+            <p class="preview-copy">
+              Print this image or show it on another screen. The AR experience tracks this exact frame, so the closer
+              the print matches the preview, the better the result.
+            </p>
+          </div>
+
+          <div class="actions">
+            <a id="downloadTarget" class="button-link secondary disabled" href="#" download="BBQ-ICRA-target.png">Download Target Image</a>
+            <button id="startArButton" class="primary" type="button" disabled>Start AR</button>
+          </div>
+
+          <p class="support">
+            Camera access usually requires <code>https</code> or <code>localhost</code>. The AR video is muted so it can
+            autoplay reliably when the target is found.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h2>How To Use It</h2>
+          <ol class="steps">
+            <li>Open this page and download or print the generated target image.</li>
+            <li>Tap <code>Start AR</code> and allow camera access.</li>
+            <li>Point the camera at the printed first frame.</li>
+            <li>The video will begin from frame one and stay attached to the image while it remains visible.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="ar-stage" aria-label="AR camera stage">
+        <div class="stage-placeholder" id="stagePlaceholder">
+          <div class="placeholder-card">
+            <h2>Camera Stage</h2>
+            <p>
+              The AR scene will appear here after the image target is compiled and the camera starts.
+            </p>
+          </div>
+        </div>
+
+        <div id="scene-host"></div>
+
+        <div class="scan-overlay" id="scanOverlay">
+          <div class="scan-card">
+            <div class="finder"></div>
+            <p>Point your camera at the printed first frame of the video.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import { Compiler } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
+
+    const statusEl = document.getElementById("status");
+    const previewFrameEl = document.getElementById("previewFrame");
+    const targetPreviewEl = document.getElementById("targetPreview");
+    const downloadTargetEl = document.getElementById("downloadTarget");
+    const startArButtonEl = document.getElementById("startArButton");
+    const stagePlaceholderEl = document.getElementById("stagePlaceholder");
+    const scanOverlayEl = document.getElementById("scanOverlay");
+    const sceneHostEl = document.getElementById("scene-host");
+
+    let printableTargetUrl = "";
+    let targetMindUrl = "";
+    let arStarted = false;
+
+    function setStatus(message) {
+      statusEl.textContent = message;
+    }
+
+    function waitForEvent(target, eventName) {
+      return new Promise((resolve) => {
+        target.addEventListener(eventName, resolve, { once: true });
+      });
+    }
+
+    async function extractFirstFrameBlob() {
+      const video = document.createElement("video");
+      video.src = "BBQ-ICRA.mp4";
+      video.preload = "auto";
+      video.muted = true;
+      video.playsInline = true;
+      video.crossOrigin = "anonymous";
+      video.load();
+
+      await waitForEvent(video, "loadeddata");
+
+      try {
+        video.currentTime = 0;
+      } catch {
+        // Some browsers briefly defer seeks before metadata fully settles.
+      }
+
+      if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+        await new Promise((resolve) => {
+          video.requestVideoFrameCallback(() => resolve());
+        });
+      } else {
+        await new Promise((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(resolve));
+        });
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error("Could not create an image from the first frame."));
+            return;
+          }
+          resolve(blob);
+        }, "image/png");
+      });
+    }
+
+    async function blobToImage(blob) {
+      const imageUrl = URL.createObjectURL(blob);
+      const image = new Image();
+
+      try {
+        await new Promise((resolve, reject) => {
+          image.onload = resolve;
+          image.onerror = reject;
+          image.src = imageUrl;
+        });
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+      }
+
+      return image;
+    }
+
+    async function prepareTrackingTarget() {
+      setStatus("Extracting the first frame from BBQ-ICRA.mp4...");
+      const frameBlob = await extractFirstFrameBlob();
+
+      printableTargetUrl = URL.createObjectURL(frameBlob);
+      targetPreviewEl.src = printableTargetUrl;
+      previewFrameEl.classList.add("ready");
+
+      downloadTargetEl.href = printableTargetUrl;
+      downloadTargetEl.classList.remove("disabled");
+
+      setStatus("Compiling the image-tracking target in your browser...");
+      const compiler = new Compiler();
+      const image = await blobToImage(frameBlob);
+
+      await compiler.compileImageTargets([image], (progress) => {
+        setStatus(`Compiling image target... ${progress.toFixed(0)}%`);
+      });
+
+      const exportedBuffer = await compiler.exportData();
+      targetMindUrl = URL.createObjectURL(new Blob([exportedBuffer], { type: "application/octet-stream" }));
+      setStatus("Target ready. Print the preview image, then tap Start AR.");
+      startArButtonEl.disabled = false;
+    }
+
+    function buildSceneMarkup() {
+      return `
+        <a-scene
+          mindar-image="imageTargetSrc: ${targetMindUrl}; autoStart: true; uiScanning: no; uiLoading: no;"
+          color-space="sRGB"
+          renderer="colorManagement: true, physicallyCorrectLights"
+          vr-mode-ui="enabled: false"
+          device-orientation-permission-ui="enabled: false"
+          embedded
+        >
+          <a-assets>
+            <video
+              id="arVideo"
+              src="BBQ-ICRA.mp4"
+              preload="auto"
+              loop
+              muted
+              playsinline
+              webkit-playsinline
+              crossorigin="anonymous"
+            ></video>
+          </a-assets>
+
+          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+          <a-entity id="imageTarget" mindar-image-target="targetIndex: 0">
+            <a-video
+              id="videoPlane"
+              src="#arVideo"
+              position="0 0 0"
+              width="1"
+              height="0.5625"
+            ></a-video>
+          </a-entity>
+        </a-scene>
+      `;
+    }
+
+    async function startAR() {
+      if (arStarted || !targetMindUrl) {
+        return;
+      }
+
+      arStarted = true;
+      document.body.classList.add("ar-active");
+      startArButtonEl.disabled = true;
+      stagePlaceholderEl.classList.add("hidden");
+      scanOverlayEl.classList.add("visible");
+      setStatus("Starting camera and AR tracking...");
+
+      sceneHostEl.innerHTML = buildSceneMarkup();
+
+      const sceneEl = sceneHostEl.querySelector("a-scene");
+      const targetEl = sceneHostEl.querySelector("#imageTarget");
+      const arVideoEl = sceneHostEl.querySelector("#arVideo");
+      const videoPlaneEl = sceneHostEl.querySelector("#videoPlane");
+
+      arVideoEl.addEventListener("loadedmetadata", () => {
+        const width = 1;
+        const aspect = arVideoEl.videoHeight ? arVideoEl.videoWidth / arVideoEl.videoHeight : 16 / 9;
+        videoPlaneEl.setAttribute("width", width);
+        videoPlaneEl.setAttribute("height", width / aspect);
+      }, { once: true });
+
+      targetEl.addEventListener("targetFound", async () => {
+        scanOverlayEl.classList.remove("visible");
+        setStatus("Target found. Playing BBQ-ICRA.mp4 in AR.");
+
+        try {
+          arVideoEl.currentTime = 0;
+          await arVideoEl.play();
+        } catch {
+          setStatus("Target found, but autoplay was blocked. Tap the screen and try again.");
+        }
+      });
+
+      targetEl.addEventListener("targetLost", () => {
+        arVideoEl.pause();
+        scanOverlayEl.classList.add("visible");
+        setStatus("Target lost. Point the camera back at the printed first frame.");
+      });
+
+      sceneEl.addEventListener("loaded", () => {
+        setStatus("AR is ready. Point the camera at the printed first frame.");
+      }, { once: true });
+    }
+
+    startArButtonEl.addEventListener("click", startAR);
+
+    prepareTrackingTarget().catch((error) => {
+      console.error(error);
+      setStatus("Could not prepare the AR target automatically. Please reload the page and try again.");
+    });
+  </script>
+</body>
+</html>

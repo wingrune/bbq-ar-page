@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -197,7 +198,7 @@
       line-height: 1.6;
     }
 
-    .steps li + li {
+    .steps li+li {
       margin-top: 8px;
     }
 
@@ -310,6 +311,7 @@
     }
   </style>
 </head>
+
 <body>
   <main class="page">
     <div class="shell">
@@ -317,46 +319,24 @@
         <div class="eyebrow">Image-Tracked WebAR</div>
         <h1>BBQ-ICRA in AR</h1>
         <p class="lead">
-          This page uses <code>BBQ-ICRA-first-frame.png</code> as the tracking image. When the camera sees that printed
+          This page uses the first frame of the BBQ demo video as the tracking image. When the camera sees that printed
           target, the video appears on top of it in the browser.
         </p>
       </section>
 
       <section class="layout">
         <div class="panel">
-          <h2>Printed Target</h2>
-          <p id="status" class="status">Preparing the saved target image.</p>
-
-          <div class="target-card">
-            <div class="preview-frame" id="previewFrame">
-              <img id="targetPreview" alt="Saved target image used to start the AR experience">
-            </div>
-
-            <p class="preview-copy">
-              Print this image or show it on another screen. The AR experience tracks this exact PNG, so the closer the
-              print matches the preview, the better the result.
-            </p>
-          </div>
-
-          <div class="actions">
-            <a id="downloadTarget" class="button-link secondary disabled" href="#" download="BBQ-ICRA-first-frame.png">Download Target Image</a>
-            <button id="startArButton" class="primary" type="button" disabled>Start AR</button>
-          </div>
-
-          <p class="support">
-            Camera access usually requires <code>https</code> or <code>localhost</code>. The AR video is muted so it can
-            autoplay reliably when the target is found.
-          </p>
-        </div>
-
-        <div class="panel">
           <h2>How To Use It</h2>
+          <p id="status" class="status">Preparing the AR target.</p>
           <ol class="steps">
-            <li>Open this page and download or print the saved target image.</li>
             <li>Tap <code>Start AR</code> and allow camera access.</li>
-            <li>Point the camera at <code>BBQ-ICRA-first-frame.png</code>.</li>
+            <li>Point the camera at the first frame of the BBQ demo video.</li>
             <li>The video will begin from frame one and stay attached to the image while it remains visible.</li>
           </ol>
+
+          <div class="actions">
+            <button id="startArButton" class="primary" type="button" disabled>Start AR</button>
+          </div>
         </div>
       </section>
 
@@ -386,9 +366,6 @@
     import { Compiler } from "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
 
     const statusEl = document.getElementById("status");
-    const previewFrameEl = document.getElementById("previewFrame");
-    const targetPreviewEl = document.getElementById("targetPreview");
-    const downloadTargetEl = document.getElementById("downloadTarget");
     const startArButtonEl = document.getElementById("startArButton");
     const stagePlaceholderEl = document.getElementById("stagePlaceholder");
     const scanOverlayEl = document.getElementById("scanOverlay");
@@ -424,12 +401,6 @@
     async function prepareTrackingTarget() {
       setStatus("Loading BBQ-ICRA-first-frame.png...");
       const image = await loadImage(targetImagePath);
-
-      targetPreviewEl.src = targetImagePath;
-      previewFrameEl.classList.add("ready");
-
-      downloadTargetEl.href = targetImagePath;
-      downloadTargetEl.classList.remove("disabled");
 
       setStatus("Compiling the image-tracking target in your browser...");
       const compiler = new Compiler();
@@ -539,4 +510,5 @@
     });
   </script>
 </body>
+
 </html>

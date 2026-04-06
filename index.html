@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BBQ ICRA WebAR</title>
+  <title>BBQ demo WebAR</title>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <style>
@@ -317,7 +317,7 @@
     <div class="shell">
       <section class="hero">
         <div class="eyebrow">Image-Tracked WebAR</div>
-        <h1>BBQ-ICRA in AR</h1>
+        <h1>BBQ-demo in AR</h1>
         <p class="lead">
           This page uses the first frame of the BBQ demo video as the tracking image. When the camera sees that printed
           target, the video appears on top of it in the browser.
@@ -399,7 +399,7 @@
     }
 
     async function prepareTrackingTarget() {
-      setStatus("Loading BBQ-ICRA-first-frame.png...");
+      setStatus("Loading the first frame of BBQ demo...");
       const image = await loadImage(targetImagePath);
 
       setStatus("Compiling the image-tracking target in your browser...");
@@ -411,7 +411,7 @@
 
       const exportedBuffer = await compiler.exportData();
       targetMindUrl = URL.createObjectURL(new Blob([exportedBuffer], { type: "application/octet-stream" }));
-      setStatus("Target ready. Print BBQ-ICRA-first-frame.png, then tap Start AR.");
+      setStatus("Target ready. Print the first frame of BBQ demo, then tap Start AR.");
       startArButtonEl.disabled = false;
     }
 
@@ -481,7 +481,7 @@
 
       targetEl.addEventListener("targetFound", async () => {
         scanOverlayEl.classList.remove("visible");
-        setStatus("Target found. Playing BBQ-ICRA.mp4 in AR.");
+        setStatus("Target found. Playing BBQ demo video in AR.");
 
         try {
           arVideoEl.currentTime = 0;
@@ -494,11 +494,11 @@
       targetEl.addEventListener("targetLost", () => {
         arVideoEl.pause();
         scanOverlayEl.classList.add("visible");
-        setStatus("Target lost. Point the camera back at BBQ-ICRA-first-frame.png.");
+        setStatus("Target lost. Point the camera back at the image.");
       });
 
       sceneEl.addEventListener("loaded", () => {
-        setStatus("AR is ready. Point the camera at BBQ-ICRA-first-frame.png.");
+        setStatus("AR is ready. Point the camera at the image.");
       }, { once: true });
     }
 

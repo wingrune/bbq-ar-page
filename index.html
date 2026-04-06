@@ -317,29 +317,29 @@
         <div class="eyebrow">Image-Tracked WebAR</div>
         <h1>BBQ-ICRA in AR</h1>
         <p class="lead">
-          This page turns the first frame of <code>BBQ-ICRA.mp4</code> into the printed tracking image. When the camera
-          sees that printed frame, the video appears on top of it in the browser.
+          This page uses <code>BBQ-ICRA-first-frame.png</code> as the tracking image. When the camera sees that printed
+          target, the video appears on top of it in the browser.
         </p>
       </section>
 
       <section class="layout">
         <div class="panel">
           <h2>Printed Target</h2>
-          <p id="status" class="status">Preparing the first frame preview.</p>
+          <p id="status" class="status">Preparing the saved target image.</p>
 
           <div class="target-card">
             <div class="preview-frame" id="previewFrame">
-              <img id="targetPreview" alt="Generated image target from the first video frame">
+              <img id="targetPreview" alt="Saved target image used to start the AR experience">
             </div>
 
             <p class="preview-copy">
-              Print this image or show it on another screen. The AR experience tracks this exact frame, so the closer
-              the print matches the preview, the better the result.
+              Print this image or show it on another screen. The AR experience tracks this exact PNG, so the closer the
+              print matches the preview, the better the result.
             </p>
           </div>
 
           <div class="actions">
-            <a id="downloadTarget" class="button-link secondary disabled" href="#" download="BBQ-ICRA-target.png">Download Target Image</a>
+            <a id="downloadTarget" class="button-link secondary disabled" href="#" download="BBQ-ICRA-first-frame.png">Download Target Image</a>
             <button id="startArButton" class="primary" type="button" disabled>Start AR</button>
           </div>
 
@@ -352,9 +352,9 @@
         <div class="panel">
           <h2>How To Use It</h2>
           <ol class="steps">
-            <li>Open this page and download or print the generated target image.</li>
+            <li>Open this page and download or print the saved target image.</li>
             <li>Tap <code>Start AR</code> and allow camera access.</li>
-            <li>Point the camera at the printed first frame.</li>
+            <li>Point the camera at <code>BBQ-ICRA-first-frame.png</code>.</li>
             <li>The video will begin from frame one and stay attached to the image while it remains visible.</li>
           </ol>
         </div>
@@ -375,7 +375,7 @@
         <div class="scan-overlay" id="scanOverlay">
           <div class="scan-card">
             <div class="finder"></div>
-            <p>Point your camera at the printed first frame of the video.</p>
+            <p>Point your camera at the printed target image.</p>
           </div>
         </div>
       </section>
@@ -394,7 +394,7 @@
     const scanOverlayEl = document.getElementById("scanOverlay");
     const sceneHostEl = document.getElementById("scene-host");
 
-    let printableTargetUrl = "";
+    const targetImagePath = "BBQ-ICRA-first-frame.png";
     let targetMindUrl = "";
     let arStarted = false;
 
@@ -408,82 +408,31 @@
       });
     }
 
-    async function extractFirstFrameBlob() {
-      const video = document.createElement("video");
-      video.src = "BBQ-ICRA.mp4";
-      video.preload = "auto";
-      video.muted = true;
-      video.playsInline = true;
-      video.crossOrigin = "anonymous";
-      video.load();
-
-      await waitForEvent(video, "loadeddata");
-
-      try {
-        video.currentTime = 0;
-      } catch {
-        // Some browsers briefly defer seeks before metadata fully settles.
-      }
-
-      if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-        await new Promise((resolve) => {
-          video.requestVideoFrameCallback(() => resolve());
-        });
-      } else {
-        await new Promise((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(resolve));
-        });
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      return new Promise((resolve, reject) => {
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            reject(new Error("Could not create an image from the first frame."));
-            return;
-          }
-          resolve(blob);
-        }, "image/png");
-      });
-    }
-
-    async function blobToImage(blob) {
-      const imageUrl = URL.createObjectURL(blob);
+    async function loadImage(src) {
       const image = new Image();
+      image.crossOrigin = "anonymous";
 
-      try {
-        await new Promise((resolve, reject) => {
-          image.onload = resolve;
-          image.onerror = reject;
-          image.src = imageUrl;
-        });
-      } finally {
-        URL.revokeObjectURL(imageUrl);
-      }
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error(`Could not load image: ${src}`));
+        image.src = src;
+      });
 
       return image;
     }
 
     async function prepareTrackingTarget() {
-      setStatus("Extracting the first frame from BBQ-ICRA.mp4...");
-      const frameBlob = await extractFirstFrameBlob();
+      setStatus("Loading BBQ-ICRA-first-frame.png...");
+      const image = await loadImage(targetImagePath);
 
-      printableTargetUrl = URL.createObjectURL(frameBlob);
-      targetPreviewEl.src = printableTargetUrl;
+      targetPreviewEl.src = targetImagePath;
       previewFrameEl.classList.add("ready");
 
-      downloadTargetEl.href = printableTargetUrl;
+      downloadTargetEl.href = targetImagePath;
       downloadTargetEl.classList.remove("disabled");
 
       setStatus("Compiling the image-tracking target in your browser...");
       const compiler = new Compiler();
-      const image = await blobToImage(frameBlob);
 
       await compiler.compileImageTargets([image], (progress) => {
         setStatus(`Compiling image target... ${progress.toFixed(0)}%`);
@@ -491,7 +440,7 @@
 
       const exportedBuffer = await compiler.exportData();
       targetMindUrl = URL.createObjectURL(new Blob([exportedBuffer], { type: "application/octet-stream" }));
-      setStatus("Target ready. Print the preview image, then tap Start AR.");
+      setStatus("Target ready. Print BBQ-ICRA-first-frame.png, then tap Start AR.");
       startArButtonEl.disabled = false;
     }
 
@@ -574,11 +523,11 @@
       targetEl.addEventListener("targetLost", () => {
         arVideoEl.pause();
         scanOverlayEl.classList.add("visible");
-        setStatus("Target lost. Point the camera back at the printed first frame.");
+        setStatus("Target lost. Point the camera back at BBQ-ICRA-first-frame.png.");
       });
 
       sceneEl.addEventListener("loaded", () => {
-        setStatus("AR is ready. Point the camera at the printed first frame.");
+        setStatus("AR is ready. Point the camera at BBQ-ICRA-first-frame.png.");
       }, { once: true });
     }
 

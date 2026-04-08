@@ -54,8 +54,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "output",
         nargs="?",
-        default="BBQ-ICRA-first-frame.png",
-        help="Path to the output image. Default: BBQ-ICRA-first-frame.png",
+        default="qr-code-35.png",
+        help="Path to the output image. Default: qr-code-35.png",
     )
     return parser.parse_args()
 

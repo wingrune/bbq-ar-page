@@ -325,6 +325,26 @@
       </section>
 
       <section class="layout">
+        <section class="ar-stage" aria-label="AR camera stage">
+          <div class="stage-placeholder" id="stagePlaceholder">
+            <div class="placeholder-card">
+              <h2>Camera Stage</h2>
+              <p>
+                The AR scene will appear here after the image target is compiled and the camera starts.
+              </p>
+            </div>
+          </div>
+
+          <div id="scene-host"></div>
+
+          <div class="scan-overlay" id="scanOverlay">
+            <div class="scan-card">
+              <div class="finder"></div>
+              <p>Point your camera at the printed target image.</p>
+            </div>
+          </div>
+        </section>
+
         <div class="panel">
           <h2>How To Use It</h2>
           <p id="status" class="status">Preparing the AR target.</p>
@@ -336,26 +356,6 @@
 
           <div class="actions">
             <button id="startArButton" class="primary" type="button" disabled>Start AR</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="ar-stage" aria-label="AR camera stage">
-        <div class="stage-placeholder" id="stagePlaceholder">
-          <div class="placeholder-card">
-            <h2>Camera Stage</h2>
-            <p>
-              The AR scene will appear here after the image target is compiled and the camera starts.
-            </p>
-          </div>
-        </div>
-
-        <div id="scene-host"></div>
-
-        <div class="scan-overlay" id="scanOverlay">
-          <div class="scan-card">
-            <div class="finder"></div>
-            <p>Point your camera at the printed target image.</p>
           </div>
         </div>
       </section>
@@ -371,7 +371,7 @@
     const scanOverlayEl = document.getElementById("scanOverlay");
     const sceneHostEl = document.getElementById("scene-host");
 
-    const targetImagePath = "BBQ-ICRA-first-frame.png";
+    const targetImagePath = "qr-code-35.png";
     let targetMindUrl = "";
     let arStarted = false;
 

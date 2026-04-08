@@ -55,6 +55,11 @@
       gap: 10px;
     }
 
+    .hero-meta {
+      display: grid;
+      gap: 8px;
+    }
+
     .eyebrow {
       font-size: 0.8rem;
       letter-spacing: 0.18em;
@@ -66,7 +71,7 @@
       margin: 0;
       font-size: clamp(2.4rem, 4.6vw, 5.1rem);
       line-height: 0.92;
-      max-width: 12ch;
+      max-width: 18ch;
     }
 
     .lead {
@@ -75,6 +80,32 @@
       color: var(--muted);
       line-height: 1.6;
       font-size: 1rem;
+    }
+
+    .authors,
+    .affiliations,
+    .contribution-note {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .authors {
+      font-size: 1rem;
+    }
+
+    .affiliations,
+    .contribution-note {
+      font-size: 0.95rem;
+    }
+
+    .author-link {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .author-link:hover {
+      text-decoration: underline;
     }
 
     .layout {
@@ -317,9 +348,35 @@
     <div class="shell">
       <section class="hero">
         <div class="eyebrow">Image-Tracked WebAR</div>
-        <h1>BBQ-demo in AR</h1>
+        <h1>Beyond Bare Queries: Open-Vocabulary Object Grounding with 3D Scene Graph</h1>
+        <div class="hero-meta">
+          <p class="authors">
+            <a class="author-link" href="https://github.com/linukc" target="_blank" rel="noreferrer">Sergey
+              Linok</a><sup>1,*</sup>,
+            <a class="author-link" href="https://github.com/wingrune" target="_blank" rel="noreferrer">Tatiana
+              Zemskova</a><sup>1,2,*</sup>,
+            Svetlana Ladanova<sup>1</sup>,
+            Roman Titkov<sup>1</sup>,
+            Dmitry Yudin<sup>1,2</sup>,
+            Maxim Monastyrny<sup>3</sup>,
+            Aleksei Valenkov<sup>3</sup>
+          </p>
+          <p class="affiliations">
+            <sup>1</sup>Moscow Institute of Physics and Technology (MIPT), <sup>2</sup>AIRI, <sup>3</sup>Sberbank of
+            Russia, Robotics Center
+          </p>
+          <p class="contribution-note">
+            * indicates equal contribution.
+          </p>
+          <div class="actions">
+            <a class="button-link secondary" href="https://ieeexplore.ieee.org/document/11128059" target="_blank"
+              rel="noreferrer">arXiv</a>
+            <a class="button-link secondary" href="https://github.com/linukc/BeyondBareQueries" target="_blank"
+              rel="noreferrer">Code</a>
+          </div>
+        </div>
         <p class="lead">
-          This page uses the first frame of the BBQ demo video as the tracking image. When the camera sees that printed
+          This page uses a QR code as the tracking image. When the camera sees that printed
           target, the video appears on top of it in the browser.
         </p>
       </section>
@@ -340,7 +397,7 @@
           <div class="scan-overlay" id="scanOverlay">
             <div class="scan-card">
               <div class="finder"></div>
-              <p>Point your camera at the printed target image.</p>
+              <p>Point your camera at the printed QR code.</p>
             </div>
           </div>
         </section>
@@ -350,7 +407,7 @@
           <p id="status" class="status">Preparing the AR target.</p>
           <ol class="steps">
             <li>Tap <code>Start AR</code> and allow camera access.</li>
-            <li>Point the camera at the first frame of the BBQ demo video.</li>
+            <li>Point the camera at the QR code.</li>
             <li>The video will begin from frame one and stay attached to the image while it remains visible.</li>
           </ol>
 
@@ -399,7 +456,7 @@
     }
 
     async function prepareTrackingTarget() {
-      setStatus("Loading the first frame of BBQ demo...");
+      setStatus("Loading the QR code target...");
       const image = await loadImage(targetImagePath);
 
       setStatus("Compiling the image-tracking target in your browser...");
@@ -411,7 +468,7 @@
 
       const exportedBuffer = await compiler.exportData();
       targetMindUrl = URL.createObjectURL(new Blob([exportedBuffer], { type: "application/octet-stream" }));
-      setStatus("Target ready. Print the first frame of BBQ demo, then tap Start AR.");
+      setStatus("Target ready. Print the QR code, then tap Start AR.");
       startArButtonEl.disabled = false;
     }
 
